@@ -1,5 +1,4 @@
 
-
 function KPIcard({ title, value }) {
  const displayValue =
     typeof value === "number" ? `$${value.toLocaleString()}` : value;
@@ -11,9 +10,9 @@ function KPIcard({ title, value }) {
         padding: "20px",
         borderRadius: "10px",
         width: "200px",
-        backgroundColor: "#4caf50", // green for positive KPI
+        backgroundColor: "#4caf50", 
         color: "white",
-        boxShadow: "0 4px 12px rgba(0,0,0,0.1)", // subtle shadow
+        boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
         textAlign: "center",
       }}
     >

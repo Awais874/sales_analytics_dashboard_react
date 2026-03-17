@@ -11,7 +11,6 @@ import {
   LabelList,
 } from "recharts";
 
-// Professional color palette for a clean, official look
 const COLORS = ["#1f77b4", "#ff7f0e", "#2ca02c", "#d62728", "#9467bd"];
 
 function CategoryChart({ data }) {
@@ -26,17 +25,17 @@ function CategoryChart({ data }) {
   );
 
   return (
-    <ResponsiveContainer width="100%" height={400}> {/* increased height */}
+    <ResponsiveContainer width="100%" height={400}> 
       <BarChart
         data={categorySales}
-        margin={{ top: 30, right: 20, bottom: 30, left: 80 }} // left margin for Y labels
+        margin={{ top: 30, right: 20, bottom: 30, left: 80 }} 
       >
         <CartesianGrid stroke="#e0e0e0" strokeDasharray="3 3" />
         <XAxis
           dataKey="category"
           tick={{ fontWeight: "bold", fill: "#555" }}
-          interval={0} // show all category labels
-          angle={-10} // tilt labels slightly if too long
+          interval={0} 
+          angle={-10} 
           textAnchor="end"
         />
         <YAxis

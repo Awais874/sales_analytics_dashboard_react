@@ -1,18 +1,23 @@
 import { PieChart, Pie, Tooltip, Cell, Legend, ResponsiveContainer } from "recharts";
 
-// const COLORS = ["#4CAF50", "#2196F3", "#ff07fb", "#508574", "#9C27B0", "#00BCD4"];
+
 const COLORS = ["#4CAF50", "#8bb18d", "#4DD0E1", "#FFB74D", "#BA68C8", "#64B5F6"];
 
 function RegionChart({ data }) {
-  const regionSales = Object.values(
-    data.reduce((acc, row) => {
-      const region = row["Region"];
-      const sales = parseFloat(row["Sales"]) || 0;
-      if (!acc[region]) acc[region] = { region, sales: 0 };
-      acc[region].sales += sales;
-      return acc;
-    }, {})
-  );
+const regionSales = Object.values(
+  data.reduce((acc, row) => {
+    const region = row["Region"]?.trim();
+    const sales = parseFloat(row["Sales"]) || 0;
+
+    //  Skip invalid regions
+    if (!region) return acc;
+
+    if (!acc[region]) acc[region] = { region, sales: 0 };
+    acc[region].sales += sales;
+
+    return acc;
+  }, {})
+);
 
   return (
     <ResponsiveContainer width="100%" height={400}>

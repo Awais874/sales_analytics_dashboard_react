@@ -64,9 +64,10 @@
 /* Header Description */
 .app-header p {
   font-size: 1rem;
-  font-weight: 400;
+  font-weight: 300;
   max-width: 800px;
-  margin: 0 auto;
+  margin: 30px auto 0;
+ 
 }
 
 /* KPI Cards container */
