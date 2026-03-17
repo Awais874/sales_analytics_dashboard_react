@@ -1,3 +1,5 @@
+
+
 import Papa from "papaparse";
 
 export const loadData = async () => {
@@ -7,8 +9,24 @@ export const loadData = async () => {
   return new Promise((resolve) => {
     Papa.parse(csv, {
       header: true,
+      skipEmptyLines: true, //  remove empty rows
       complete: (result) => {
-        resolve(result.data);
+        const cleanedData = result.data
+          .filter((row) => row && row.Sales && row.Category) //  remove invalid rows
+          .map((row) => {
+            const sales = parseFloat(row.Sales);
+
+            return {
+              ...row,
+              //  clean numeric values
+              Sales: isNaN(sales) ? 0 : sales,
+
+              //  normalize category
+              Category: row.Category?.trim().toLowerCase()
+            };
+          });
+
+        resolve(cleanedData);
       }
     });
   });
@@ -17,18 +35,21 @@ export const loadData = async () => {
 
 export const calculateKPIs = (data) => {
   const totalRevenue = data.reduce(
-    (sum, row) => sum + parseFloat(row.Sales || 0),
+    (sum, row) => sum + (row.Sales || 0), 
     0
   );
 
   const totalOrders = data.length;
 
-  const avgOrderValue = totalRevenue / totalOrders;
+  const avgOrderValue = totalOrders ? totalRevenue / totalOrders : 0; // avoid divide by 0
 
   const topCategory = Object.values(
     data.reduce((acc, row) => {
-      acc[row.Category] = acc[row.Category] || { name: row.Category, sales: 0 };
-      acc[row.Category].sales += parseFloat(row.Sales || 0);
+      const category = row.Category || "unknown"; //  fallback
+
+      acc[category] = acc[category] || { name: category, sales: 0 };
+      acc[category].sales += row.Sales || 0;
+
       return acc;
     }, {})
   ).sort((a, b) => b.sales - a.sales)[0];
@@ -40,7 +61,3 @@ export const calculateKPIs = (data) => {
     topCategory: topCategory?.name
   };
 };
-
-
-
-
