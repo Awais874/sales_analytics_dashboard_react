@@ -10,7 +10,7 @@ function DataTable({ data }) {
           boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
           borderRadius: "12px",
           overflow: "hidden",
-          minWidth: "600px", // adjusted since fewer columns
+          minWidth: "600px", 
         }}
       >
         <thead
