@@ -1,4 +1,4 @@
-// components/Section.js
+
 import React from "react";
 
 const Section = ({ title, children, maxWidth = "1400px", style = {} }) => {
