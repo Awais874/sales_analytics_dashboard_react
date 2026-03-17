@@ -84,4 +84,5 @@ npm run preview
 
 ## Deployment
 
-The dashboard can be deployed on **Vercel** or **Netlify** as a static React app. Once deployed, it can be accessed via a public URL for testing and demonstration.
+The dashboard is deployed on **Vercel**  
+Link:  https://salesanalyticsdashboardreact.vercel.app/
