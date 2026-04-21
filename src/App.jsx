@@ -1,5 +1,4 @@
-
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { loadData, calculateKPIs } from "./utils/dataProcessing";
 import KPIcard from "./components/KPICard";
 import DataTable from "./components/DataTable";
@@ -7,29 +6,54 @@ import CategoryChart from "./components/CategoryChart";
 import RegionChart from "./components/RegionChart";
 import SalesChart from "./components/SalesChart";
 import Section from "./utils/Section";
-import "./App.css"; 
+import "./App.css";
 
 function App() {
   const [data, setData] = useState([]);
   const [kpis, setKpis] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
+    let isMounted = true;
+
     const fetchData = async () => {
-      const dataset = await loadData();
-      setData(dataset);
+      try {
+        const dataset = await loadData();
 
-      const metrics = calculateKPIs(dataset);
-      setKpis(metrics);
+        if (!isMounted) return;
 
-      console.log(dataset);
+        setData(dataset);
+        setKpis(calculateKPIs(dataset));
+      } catch (error) {
+        console.error("Failed to load data:", error);
+      }
     };
 
     fetchData();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
+
+  const filteredData = useMemo(() => {
+    const query = searchTerm.trim().toLowerCase();
+
+    if (!query) return data;
+
+    return data.filter((row) =>
+      Object.values(row).some((value) =>
+        String(value).toLowerCase().includes(query)
+      )
+    );
+  }, [data, searchTerm]);
+
+  const handleSearchChange = (event) => {
+    setSearchTerm(event.target.value);
+  };
 
   return (
     <div className="app-container">
-      {/* Header */}
       <header className="app-header">
         <h1>Sales Analytics Dashboard</h1>
         <p>
@@ -38,7 +62,6 @@ function App() {
         </p>
       </header>
 
-      {/* KPI Cards */}
       {kpis && (
         <div className="kpi-grid">
           <KPIcard title="Total Revenue" value={kpis.totalRevenue} />
@@ -48,7 +71,6 @@ function App() {
         </div>
       )}
 
-      {/* Sections */}
       <Section title="Sales by Region">
         <RegionChart data={data} />
       </Section>
@@ -62,8 +84,19 @@ function App() {
       </Section>
 
       <Section title="Sales Records">
+        <div className="table-toolbar">
+          <input
+            type="text"
+            value={searchTerm}
+            onChange={handleSearchChange}
+            placeholder="Search table data..."
+            className="search-input"
+            aria-label="Search sales records"
+          />
+        </div>
+
         {data.length > 0 ? (
-          <DataTable data={data} />
+          <DataTable data={filteredData} />
         ) : (
           <p className="loading-text">Loading data...</p>
         )}
