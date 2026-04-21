@@ -19,9 +19,7 @@ function App() {
     const fetchData = async () => {
       try {
         const dataset = await loadData();
-
         if (!isMounted) return;
-
         setData(dataset);
         setKpis(calculateKPIs(dataset));
       } catch (error) {
@@ -30,17 +28,12 @@ function App() {
     };
 
     fetchData();
-
-    return () => {
-      isMounted = false;
-    };
+    return () => { isMounted = false; };
   }, []);
 
   const filteredData = useMemo(() => {
     const query = searchTerm.trim().toLowerCase();
-
     if (!query) return data;
-
     return data.filter((row) =>
       Object.values(row).some((value) =>
         String(value).toLowerCase().includes(query)
@@ -64,10 +57,10 @@ function App() {
 
       {kpis && (
         <div className="kpi-grid">
-          <KPIcard title="Total Revenue" value={kpis.totalRevenue} />
-          <KPIcard title="Total Orders" value={kpis.totalOrders} />
-          <KPIcard title="Avg Order Value" value={kpis.avgOrderValue} />
-          <KPIcard title="Top Category" value={kpis.topCategory} />
+          <KPIcard title="Total Revenue"   value={kpis.totalRevenue}  icon="💰" trend="up"   trendValue="8.2%" />
+          <KPIcard title="Total Orders"    value={kpis.totalOrders}   icon="📦" trend="up"   trendValue="3.1%" />
+          <KPIcard title="Avg Order Value" value={kpis.avgOrderValue} icon="📈" trend="down" trendValue="1.4%" />
+          <KPIcard title="Top Category"    value={kpis.topCategory}   icon="🏆" />
         </div>
       )}
 

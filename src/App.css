@@ -1,14 +1,12 @@
-
 :root {
-  --accent: #4CAF50;
-  --accent-bg: #E8F5E9;
-  --accent-border: #388E3C;
-  --border: #ddd;
-  --text-h: #333;
-  --social-bg: #f0f0f0;
-  --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  --accent: #6366f1;
+  --accent-bg: #eef2ff;
+  --accent-border: #4f46e5;
+  --border: #e2e8f0;
+  --text-h: #0f172a;
+  --social-bg: #f1f5f9;
+  --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.06);
 }
-
 
 *,
 *::before,
@@ -18,65 +16,65 @@
 
 body {
   margin: 0;
+  background: #f8fafc;
 }
 
 /* App container */
 .app-container {
-  background: #f0f2f5;
+  background: #f8fafc;
   min-height: 100vh;
   padding: clamp(12px, 4vw, 24px);
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   color: #333;
-
   display: flex;
   flex-direction: column;
-  align-items: stretch; /* ✅ FIXED */
+  align-items: stretch;
 }
 
 /* Header */
 .app-header {
   width: 100%;
-  background: linear-gradient(135deg, #4CAF50, #72ce77);
-  padding: clamp(20px, 6vw, 48px);
-  border-radius: 8px;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
-  text-align: center;
+  background: #0f172a;
+  padding: clamp(20px, 4vw, 36px) clamp(20px, 5vw, 48px);
+  border-radius: 12px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+  text-align: left;
   margin-bottom: clamp(16px, 4vw, 30px);
   color: white;
+  border-left: 4px solid #6366f1;
 }
 
 .app-header h1 {
-  font-size: clamp(1.6rem, 5vw, 2.5rem);
+  font-size: clamp(1.4rem, 4vw, 2rem);
   font-weight: 700;
-  margin-bottom: 12px;
-  color: white;
+  margin-bottom: 8px;
+  color: #f8fafc;
+  letter-spacing: -0.02em;
 }
 
 .app-header p {
-  font-size: clamp(0.9rem, 2.5vw, 1rem);
+  font-size: clamp(0.85rem, 2vw, 0.95rem);
   max-width: 700px;
-  margin: 0 auto;
+  margin: 0;
+  color: #94a3b8;
 }
 
 /* KPI Grid */
 .kpi-grid {
   display: grid;
-
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-
   gap: clamp(12px, 3vw, 24px);
-  margin: 0 auto clamp(20px, 5vw, 40px); 
-
-  max-width: 1100px;   
-  padding: 0 clamp(12px, 4vw, 24px); 
+  margin: 0 auto clamp(20px, 5vw, 40px);
+  width: 100%;
+  padding: 0 clamp(4px, 2vw, 12px);
 }
-
 
 .kpi-card {
   background: white;
-  border-radius: 8px;
+  border-radius: 16px;
   padding: 16px;
   box-shadow: var(--shadow);
+  border: 1px solid #f1f5f9;
 }
 
 /* Counter */
@@ -104,24 +102,21 @@ body {
   width: 100%;
 }
 
-
 .chart-container {
   width: 100%;
   background: white;
-  border-radius: 8px;
-  padding: 16px;
+  border-radius: 12px;
+  padding: 24px;
   box-shadow: var(--shadow);
-
-  overflow-x: auto; 
+  border: 1px solid #f1f5f9;
+  overflow-x: auto;
 }
-
 
 canvas,
 svg {
   max-width: 100%;
   height: auto;
 }
-
 
 #next-steps {
   display: flex;
@@ -134,11 +129,9 @@ svg {
   padding: clamp(16px, 4vw, 24px);
 }
 
-
 #docs {
   border-right: 1px solid var(--border);
 }
-
 
 #next-steps ul {
   list-style: none;
@@ -178,35 +171,7 @@ svg {
   border-top: 1px solid var(--border);
 }
 
-/* MOBILE FIXES */
-@media (max-width: 768px) {
-  #next-steps {
-    flex-direction: column;
-    text-align: center;
-  }
-
-  #docs {
-    border-right: none;
-    border-bottom: 1px solid var(--border);
-  }
-
-  .app-header {
-    padding: 20px;
-  }
-}
-
-/* EXTRA SMALL DEVICES */
-@media (max-width: 480px) {
-  .kpi-grid {
-    grid-template-columns: 1fr; /* ✅ clean single column */
-  }
-
-  .app-header h1 {
-    font-size: 1.5rem;
-  }
-}
-
-
+/* Table toolbar */
 .table-toolbar {
   margin-bottom: 16px;
   display: flex;
@@ -221,8 +186,47 @@ svg {
   border-radius: 8px;
   outline: none;
   font-size: 14px;
+  background: #f8fafc;
+  transition: border-color 0.2s;
 }
 
 .search-input:focus {
-  border-color: #667085;
+  border-color: #6366f1;
+  background: #ffffff;
+}
+
+.loading-text {
+  text-align: center;
+  color: #94a3b8;
+  font-size: 14px;
+  padding: 32px 0;
+}
+
+/* MOBILE FIXES */
+@media (max-width: 768px) {
+  #next-steps {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  #docs {
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .app-header {
+    padding: 20px;
+    border-left: 3px solid #6366f1;
+  }
+}
+
+/* EXTRA SMALL DEVICES */
+@media (max-width: 480px) {
+  .kpi-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .app-header h1 {
+    font-size: 1.4rem;
+  }
 }
