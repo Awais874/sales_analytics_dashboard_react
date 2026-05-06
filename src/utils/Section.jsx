@@ -1,31 +1,17 @@
-
-import React from "react";
-
-const Section = ({ title, children, maxWidth = "1400px", style = {} }) => {
+const Section = ({ title, children, id, maxWidth = "1400px", titleAlign = "left", action }) => {
   return (
     <section
-      style={{
-        padding: "30px",
-        background: "#fff",
-        borderRadius: "16px",
-        boxShadow: "0 6px 20px rgba(0,0,0,0.08)",
-        width: "100%",
-        maxWidth,
-        marginBottom: "60px",
-        ...style,
-      }}
+      className="section"
+      id={id}
+      style={{ maxWidth }}
     >
       {title && (
-        <h2
-          style={{
-            marginBottom: "25px",
-            color: "#111",
-            textAlign: "center",
-            fontWeight: "600",
-          }}
-        >
-          {title}
-        </h2>
+        <div className="section__header" style={{ justifyContent: titleAlign === "center" ? "center" : "space-between" }}>
+          <h2 className="section__title" style={{ textAlign: titleAlign }}>
+            {title}
+          </h2>
+          {action && <div className="section__action">{action}</div>}
+        </div>
       )}
       {children}
     </section>

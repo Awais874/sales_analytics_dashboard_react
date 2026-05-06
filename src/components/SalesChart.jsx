@@ -1,4 +1,6 @@
 import {
+  AreaChart,
+  Area,
   LineChart,
   Line,
   XAxis,
@@ -6,136 +8,199 @@ import {
   Tooltip,
   CartesianGrid,
   ResponsiveContainer,
-  Legend
+  Legend,
 } from "recharts";
 import { useMemo, useState } from "react";
 
+const MARGIN_BY_CAT = {
+  technology: 0.17,
+  furniture: 0.04,
+  "office supplies": 0.12,
+};
+
+const MONTH_ORDER = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+
+function CustomTooltip({ active, payload, label }) {
+  if (!active || !payload?.length) return null;
+  return (
+    <div className="chart-tooltip">
+      <p className="chart-tooltip__label">{label}</p>
+      {payload.map((p) => (
+        <p key={p.dataKey} className="chart-tooltip__row" style={{ color: p.color }}>
+          {p.name}: ${Math.round(p.value).toLocaleString()}
+        </p>
+      ))}
+    </div>
+  );
+}
+
 function SalesChart({ data }) {
   const [view, setView] = useState("month");
+  const [selectedYear, setSelectedYear] = useState("all");
+  const [showProfit, setShowProfit] = useState(true);
 
-  const salesData = useMemo(() => {
-    const grouped = data.reduce((acc, row) => {
+  const years = useMemo(() => {
+    const ys = [...new Set(data.map((r) => new Date(r["Order Date"]).getFullYear()).filter(Boolean))].sort();
+    return ys;
+  }, [data]);
+
+  const chartData = useMemo(() => {
+    const source = selectedYear === "all"
+      ? data
+      : data.filter((r) => new Date(r["Order Date"]).getFullYear() === +selectedYear);
+
+    const grouped = source.reduce((acc, row) => {
       const date = new Date(row["Order Date"]);
+      if (isNaN(date)) return acc;
       const sales = parseFloat(row["Sales"]) || 0;
+      const cat = row["Category"]?.toLowerCase() ?? "office supplies";
+      const profit = sales * (MARGIN_BY_CAT[cat] ?? 0.1);
 
       let key;
       if (view === "year") {
-        key = date.getFullYear();
+        key = String(date.getFullYear());
       } else {
-        const month = date.toLocaleString("default", { month: "short" });
-        key = `${month} ${date.getFullYear()}`;
+        key = `${MONTH_ORDER[date.getMonth()]} ${date.getFullYear()}`;
       }
 
-      if (!acc[key]) acc[key] = { period: String(key), sales: 0 };
+      if (!acc[key]) acc[key] = { period: key, sales: 0, profit: 0, _month: date.getMonth(), _year: date.getFullYear() };
       acc[key].sales += sales;
+      acc[key].profit += profit;
       return acc;
     }, {});
 
-    return Object.values(grouped);
-  }, [data, view]);
+    const sorted = Object.values(grouped).sort((a, b) => {
+      if (view === "year") return +a.period - +b.period;
+      if (a._year !== b._year) return a._year - b._year;
+      return a._month - b._month;
+    });
 
-  const btnStyle = (active) => ({
-    padding: "7px 20px",
-    borderRadius: "20px",
-    border: "1px solid",
-    borderColor: active ? "#6366f1" : "#e2e8f0",
-    backgroundColor: active ? "#6366f1" : "#ffffff",
-    color: active ? "#ffffff" : "#64748b",
-    fontWeight: "600",
-    fontSize: "13px",
-    cursor: "pointer",
-    transition: "all 0.2s ease",
-    letterSpacing: "0.02em",
-  });
+    return sorted.map((d) => ({
+      period: d.period,
+      sales: Math.round(d.sales),
+      profit: Math.round(d.profit),
+    }));
+  }, [data, view, selectedYear]);
 
-  const CustomTooltip = ({ active, payload, label }) => {
-    if (active && payload && payload.length) {
-      return (
-        <div style={{
-          background: "#0f172a",
-          border: "none",
-          borderRadius: "10px",
-          padding: "10px 16px",
-          color: "#f8fafc",
-          fontSize: "13px",
-          boxShadow: "0 4px 20px rgba(0,0,0,0.2)",
-        }}>
-          <p style={{ margin: "0 0 4px", color: "#94a3b8", fontSize: "12px" }}>{label}</p>
-          <p style={{ margin: 0, fontWeight: "700", color: "#a5b4fc" }}>
-            ${payload[0].value.toLocaleString()}
-          </p>
-        </div>
-      );
-    }
-    return null;
-  };
+  const title = view === "month"
+    ? `Monthly Sales Trend${selectedYear !== "all" ? ` — ${selectedYear}` : ""}`
+    : "Yearly Sales Trend";
 
   return (
-    <>
-      {/* Header row */}
-      <div style={{
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        marginBottom: "20px",
-        flexWrap: "wrap",
-        gap: "12px",
-      }}>
-        <h2 style={{
-          margin: 0,
-          fontSize: "16px",
-          fontWeight: "600",
-          color: "#0f172a",
-          letterSpacing: "-0.01em",
-        }}>
-          {view === "month" ? "Monthly Sales Trend" : "Yearly Sales Trend"}
-        </h2>
+    <div className="sales-chart">
+      <div className="sales-chart__header">
+        <h2 className="sales-chart__title">{title}</h2>
+        <div className="sales-chart__controls">
+          {view === "month" && (
+            <select
+              className="chart-select"
+              value={selectedYear}
+              onChange={(e) => setSelectedYear(e.target.value)}
+              aria-label="Select year"
+            >
+              <option value="all">All Years</option>
+              {years.map((y) => <option key={y} value={y}>{y}</option>)}
+            </select>
+          )}
 
-        {/* Toggle buttons */}
-        <div style={{ display: "flex", gap: "8px" }}>
-          <button onClick={() => setView("month")} style={btnStyle(view === "month")}>Monthly</button>
-          <button onClick={() => setView("year")}  style={btnStyle(view === "year")}>Yearly</button>
+          <div className="chart-toggle-group">
+            <button
+              className={`chart-toggle-btn${view === "month" ? " active" : ""}`}
+              onClick={() => setView("month")}
+            >
+              Monthly
+            </button>
+            <button
+              className={`chart-toggle-btn${view === "year" ? " active" : ""}`}
+              onClick={() => setView("year")}
+            >
+              Yearly
+            </button>
+          </div>
+
+          <label className="chart-checkbox-label">
+            <input
+              type="checkbox"
+              checked={showProfit}
+              onChange={(e) => setShowProfit(e.target.checked)}
+            />
+            Show profit
+          </label>
         </div>
       </div>
 
+      <div className="chart-legend">
+        <span className="chart-legend__item">
+          <span className="chart-legend__swatch" style={{ background: "#6366f1" }} />
+          Sales
+        </span>
+        {showProfit && (
+          <span className="chart-legend__item">
+            <span className="chart-legend__swatch" style={{ background: "#10b981" }} />
+            Est. Profit
+          </span>
+        )}
+      </div>
+
       <ResponsiveContainer width="100%" height={320}>
-        <LineChart data={salesData} margin={{ top: 10, right: 20, left: 60, bottom: 10 }}>
+        <AreaChart data={chartData} margin={{ top: 10, right: 20, left: 60, bottom: 10 }}>
+          <defs>
+            <linearGradient id="salesGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="5%" stopColor="#6366f1" stopOpacity={0.15} />
+              <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
+            </linearGradient>
+            <linearGradient id="profitGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="5%" stopColor="#10b981" stopOpacity={0.15} />
+              <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
+            </linearGradient>
+          </defs>
 
           <CartesianGrid stroke="#f1f5f9" strokeDasharray="4 4" vertical={false} />
 
           <XAxis
             dataKey="period"
-            tick={{ fill: "#94a3b8", fontSize: 12 }}
+            tick={{ fill: "#94a3b8", fontSize: 11 }}
             axisLine={false}
             tickLine={false}
+            interval="preserveStartEnd"
           />
 
           <YAxis
-            tickFormatter={(val) => `$${(val / 1000).toFixed(0)}k`}
-            tick={{ fill: "#94a3b8", fontSize: 12 }}
+            tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`}
+            tick={{ fill: "#94a3b8", fontSize: 11 }}
             axisLine={false}
             tickLine={false}
+            width={55}
           />
 
           <Tooltip content={<CustomTooltip />} />
 
-          <Legend
-            wrapperStyle={{ fontSize: "13px", color: "#64748b", paddingTop: "12px" }}
-          />
-
-          <Line
+          <Area
             type="monotone"
             dataKey="sales"
             name="Sales"
             stroke="#6366f1"
             strokeWidth={2.5}
-            dot={{ fill: "#6366f1", r: 4, strokeWidth: 0 }}
-            activeDot={{ r: 6, fill: "#6366f1", strokeWidth: 2, stroke: "#fff" }}
+            fill="url(#salesGrad)"
+            dot={false}
+            activeDot={{ r: 5, fill: "#6366f1", stroke: "#fff", strokeWidth: 2 }}
           />
 
-        </LineChart>
+          {showProfit && (
+            <Area
+              type="monotone"
+              dataKey="profit"
+              name="Est. Profit"
+              stroke="#10b981"
+              strokeWidth={2}
+              fill="url(#profitGrad)"
+              dot={false}
+              activeDot={{ r: 5, fill: "#10b981", stroke: "#fff", strokeWidth: 2 }}
+            />
+          )}
+        </AreaChart>
       </ResponsiveContainer>
-    </>
+    </div>
   );
 }
 

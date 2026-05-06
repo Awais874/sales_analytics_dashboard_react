@@ -1,84 +1,148 @@
-import { PieChart, Pie, Tooltip, Cell, Legend, ResponsiveContainer } from "recharts";
+import {
+  PieChart,
+  Pie,
+  Tooltip,
+  Cell,
+  ResponsiveContainer,
+} from "recharts";
+import { useMemo, useState } from "react";
 
-const COLORS = ["#6366f1", "#06b6d4", "#10b981", "#8b5cf6", "#f59e0b", "#ec4899"];
-
-const CustomTooltip = ({ active, payload }) => {
-  if (active && payload && payload.length) {
-    return (
-      <div style={{
-        background: "#0f172a",
-        borderRadius: "10px",
-        padding: "10px 16px",
-        color: "#f8fafc",
-        fontSize: "13px",
-        boxShadow: "0 4px 20px rgba(0,0,0,0.2)",
-      }}>
-        <p style={{ margin: "0 0 4px", color: "#94a3b8", fontSize: "12px" }}>
-          {payload[0].name}
-        </p>
-        <p style={{ margin: 0, fontWeight: "700", color: "#a5b4fc" }}>
-          ${payload[0].value.toLocaleString()}
-        </p>
-        {/* ← removed percent line — it was NaN because Recharts
-            doesn't pass percent to custom tooltips on PieChart */}
-      </div>
-    );
-  }
-  return null;
+const REGION_COLORS = {
+  West:    "#06b6d4",
+  East:    "#8b5cf6",
+  Central: "#10b981",
+  South:   "#6366f1",
 };
+const FALLBACK_COLORS = ["#f59e0b", "#ec4899", "#ef4444", "#64748b"];
+
+function getColor(region, index) {
+  return REGION_COLORS[region] ?? FALLBACK_COLORS[index % FALLBACK_COLORS.length];
+}
+
+function CustomTooltip({ active, payload, total }) {
+  if (!active || !payload?.length) return null;
+  const { name, value } = payload[0];
+  const pct = total > 0 ? ((value / total) * 100).toFixed(1) : "0.0";
+  return (
+    <div className="chart-tooltip">
+      <p className="chart-tooltip__label">{name}</p>
+      <p className="chart-tooltip__row" style={{ color: payload[0].payload.fill }}>
+        ${Math.round(value).toLocaleString()}
+      </p>
+      <p className="chart-tooltip__pct">{pct}% of total</p>
+    </div>
+  );
+}
 
 function RegionChart({ data }) {
-  const regionSales = Object.values(
-    data.reduce((acc, row) => {
+  const [activeRegion, setActiveRegion] = useState(null);
+
+  const { regionSales, total } = useMemo(() => {
+    const grouped = data.reduce((acc, row) => {
       const region = row["Region"]?.trim();
-      const sales = parseFloat(row["Sales"]) || 0;
+      const sales  = parseFloat(row["Sales"]) || 0;
       if (!region) return acc;
       if (!acc[region]) acc[region] = { region, sales: 0 };
       acc[region].sales += sales;
       return acc;
-    }, {})
-  );
+    }, {});
+
+    const arr = Object.values(grouped)
+      .map((d, i) => ({
+        ...d,
+        sales: Math.round(d.sales),
+        fill:  getColor(d.region, i),
+      }))
+      .sort((a, b) => b.sales - a.sales);
+
+    const total = arr.reduce((s, d) => s + d.sales, 0);
+    return { regionSales: arr, total };
+  }, [data]);
+
+  const handleClick = (_, index) => {
+    const region = regionSales[index]?.region;
+    setActiveRegion((prev) => (prev === region ? null : region));
+  };
 
   return (
-    <ResponsiveContainer width="100%" height={360}>
-      <PieChart>
-        <Pie
-          data={regionSales}
-          dataKey="sales"
-          nameKey="region"
-          cx="50%"
-          cy="50%"
-          outerRadius={130}
-          innerRadius={60}
-          paddingAngle={3}
-          label={({ name, percent }) =>
-            `${name}: ${(percent * 100).toFixed(1)}%`
-          }
-          labelLine={{ stroke: "#cbd5e1", strokeWidth: 1 }}
-          isAnimationActive={true}
-        >
-          {regionSales.map((entry, index) => (
-            <Cell
-              key={`cell-${index}`}
-              fill={COLORS[index % COLORS.length]}
-              stroke="none"
-            />
-          ))}
-        </Pie>
+    <div className="region-chart">
+      <ResponsiveContainer width="100%" height={320}>
+        <PieChart>
+          <Pie
+            data={regionSales}
+            dataKey="sales"
+            nameKey="region"
+            cx="50%"
+            cy="50%"
+            outerRadius={120}
+            innerRadius={58}
+            paddingAngle={3}
+            onClick={handleClick}
+            label={({ name, percent }) =>
+              `${name}: ${(percent * 100).toFixed(1)}%`
+            }
+            labelLine={{ stroke: "#cbd5e1", strokeWidth: 1 }}
+            isAnimationActive
+          >
+            {regionSales.map((entry, index) => (
+              <Cell
+                key={entry.region}
+                fill={entry.fill}
+                stroke="none"
+                opacity={activeRegion && activeRegion !== entry.region ? 0.35 : 1}
+                style={{ cursor: "pointer", transition: "opacity 0.2s" }}
+              />
+            ))}
+          </Pie>
+          <Tooltip content={<CustomTooltip total={total} />} />
+        </PieChart>
+      </ResponsiveContainer>
 
-        <Tooltip content={<CustomTooltip />} />
+      {/* Custom legend with values + percentages */}
+      <div className="region-legend">
+        {regionSales.map((entry) => {
+          const pct = total > 0 ? ((entry.sales / total) * 100).toFixed(1) : "0.0";
+          const isActive = !activeRegion || activeRegion === entry.region;
+          return (
+            <button
+              key={entry.region}
+              className={`region-legend__item${!isActive ? " region-legend__item--faded" : ""}`}
+              onClick={() => setActiveRegion((p) => p === entry.region ? null : entry.region)}
+              aria-pressed={activeRegion === entry.region}
+            >
+              <span className="region-legend__swatch" style={{ background: entry.fill }} />
+              <span className="region-legend__name">{entry.region}</span>
+              <span className="region-legend__val">${(entry.sales / 1000).toFixed(0)}k</span>
+              <span className="region-legend__pct">{pct}%</span>
+            </button>
+          );
+        })}
+      </div>
 
-        <Legend
-          verticalAlign="bottom"
-          height={36}
-          iconType="circle"
-          iconSize={8}
-          formatter={(value) => (
-            <span style={{ color: "#64748b", fontSize: "13px" }}>{value}</span>
-          )}
-        />
-      </PieChart>
-    </ResponsiveContainer>
+      {/* Summary stats row */}
+      <div className="region-stats">
+        <div className="region-stat">
+          <span className="region-stat__val">${(total / 1000).toFixed(0)}k</span>
+          <span className="region-stat__lbl">Total Revenue</span>
+        </div>
+        <div className="region-stat">
+          <span className="region-stat__val">{regionSales.length}</span>
+          <span className="region-stat__lbl">Regions</span>
+        </div>
+        <div className="region-stat">
+          <span className="region-stat__val">
+            {regionSales[0]?.region ?? "—"}
+          </span>
+          <span className="region-stat__lbl">Top Region</span>
+        </div>
+        <div className="region-stat">
+          <span className="region-stat__val">
+            ${regionSales.length ? Math.round(total / regionSales.length).toLocaleString() : "—"}
+          </span>
+          <span className="region-stat__lbl">Avg per Region</span>
+        </div>
+      </div>
+    </div>
   );
 }
 
