@@ -4,6 +4,29 @@
 A **React-based data analytics dashboard** for visualizing and analyzing sales data. This project demonstrates **data ingestion, cleaning, KPI computation, and interactive visualization** using a real-world dataset.
 
 
+## DEMO
+An Interactive analytics tool with year/region/category filters, offering a multi-tab view (Overview, Trends, Segmentation, Records) across all records with key KPIs including
+<img width="1371" height="757" alt="image" src="https://github.com/user-attachments/assets/23e3a1c3-a800-4abc-98ef-c7f46d180db4" />
+
+
+Customer Segmentation  displaying KPIs and spend-vs-orders scatter analysis across 793 customers grouped into High Value, Mid Value, Low Value, and At Risk tiers — totaling $2.26M in revenue and $254k estimated profit.
+<img width="1392" height="902" alt="image" src="https://github.com/user-attachments/assets/e0ef7071-c56e-4292-8dc6-892c04a0e7c2" />
+
+
+Time based Trends, Monthly, yearly
+<img width="1390" height="647" alt="image" src="https://github.com/user-attachments/assets/a0e5a498-c076-4882-9395-2ca13685bf7c" />
+
+
+## Technologies
+
+* **Frontend Framework**: React 19
+* **Charting & Visualization**: Recharts
+* **Data Parsing**: PapaParse
+* **Build Tool**: Vite
+* **Code Quality**: ESLint, Babel
+* **Deployment**: Vercel
+
+
 ## Dataset
 
 * **Source**: Open dataset *(Kaggle Sales Data)*
@@ -48,14 +71,7 @@ The dashboard dynamically calculates and displays:
 * Scalable structure for adding more analytics
 
 
-## Technologies
 
-* **Frontend Framework**: React 19
-* **Charting & Visualization**: Recharts
-* **Data Parsing**: PapaParse
-* **Build Tool**: Vite
-* **Code Quality**: ESLint, Babel
-* **Deployment**: Vercel
 
 
 ## Running Locally
